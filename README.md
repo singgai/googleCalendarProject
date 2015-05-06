@@ -1,4 +1,0 @@
-# googleCalendarProject
-asdf
-asdfa
-sdf

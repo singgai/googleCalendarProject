@@ -1,16 +1,9 @@
 import datetime
+from datetime import timedelta
 
 def parseSheets():
-    dataLines=open("amritsarDutyList.txt").read().split("\n")
+    dataLines=open("amritsarDutyList.csv").read().split("\n")
     return dataLines 
-
-def createEvent(summary,dtstart,dtend,description=''):
-    event=''
-    return event
-
-def createCalendar(events,calName):
-    cal=''
-    return cal
 
 def convertToGMT(datetimestring):
     gmtTime=''
@@ -21,21 +14,38 @@ def isDayLightActive():
     #return False
 
 def convertRowToNames(row):
-    rowVals=row.split(" ")
+    rowVals=row.split(",")
     rowAr=[]
-    for i in range(1,len(rowVals)-3,2):
-        name=rowVals[i]+" "+rowVals[i+1]+" "+rowVals[i+2]
-        rowAr.append(name)
+    for i in range(1,len(rowVals)):
+        rowAr.append(rowVals[i])
     return rowAr
-    
 
-def getDateToRowMapping():
-    dateToRow={}
+def getDateTimeObjects():
+    startDate="20150501"    #yyyymmdd
+    endDate="20150515"      #yyyymmdd
+    timeVals=[["2:15","3:15"],["3:15","6:15"],["6:20","8:00"],["8:00","9:00"],["9:00","10:00"],["10:00","11:00"],["11:00","12:00"],["12:00","13:10"],["13:10","14:20"],["14:20","15:20"],["15:20","16:20"],["16:20","17:45"],["17:45","19:15"],["19:30","21:00"],["21:00","22:30"]]
+    
+    dateTimeVals=[]
+        
+    curDate=datetime.datetime.strptime(startDate,"%Y%m%d")
+    while curDate<=datetime.datetime.strptime(endDate,"%Y%m%d"):
+        for timeVal in timeVals:
+            dateTimeObj_start=datetime.datetime.strptime(curDate.strftime("%Y%m%d")+timeVal[0],"%Y%m%d%H:%M" )
+            dateTimeObj_end=datetime.datetime.strptime(str(curDate.year)+str(curDate.month)+str(curDate.day)+timeVal[1],"%Y%m%d%H:%M" )
+            dateTimeVals.append([dateTimeObj_start,dateTimeObj_end])
+            dateTimeVals.append([dateTimeObj_start,dateTimeObj_end])
+        curDate+=timedelta(days=1)
+        
+    return dateTimeVals
+
+def getNameStrings():    
     data=parseSheets()
-    for i in range((len(data)/2)):
-        dt=datetime.datetime.strptime((data[i].split(" "))[0],"%d-%m-%y")
-                
-    return dateAr
+    names=[]
+    for i in range(len(data)):
+        row=data[i]
+        for name in row.split(","):
+            names.append(name)
+    return names
 
 def createEvent(summary,dtstart,dtend,description=''):
     event=''
@@ -56,7 +66,6 @@ def createEvent(summary,dtstart,dtend,description=''):
     return event
     
 def createCalendar(events,calName):
-
     cal=''
     cal+="BEGIN:VCALENDAR"+"\n"
     cal+="PRODID:-//Google Inc//Google Calendar 70.9054//EN"+"\n"
@@ -70,4 +79,3 @@ def createCalendar(events,calName):
         cal+=event+"\n"
     cal+="END:VCALENDAR"+"\n"
     return cal
-

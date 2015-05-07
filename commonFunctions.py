@@ -5,13 +5,8 @@ def parseSheets():
     dataLines=open("amritsarDutyList.csv").read().split("\n")
     return dataLines 
 
-def convertToGMT(datetimestring):
-    gmtTime=''
-    return gmtTime
-
-def isDayLightActive():
-    return True
-    #return False
+def getGMTDiff():
+    return 5*60+30
 
 def convertRowToNames(row):
     rowVals=row.split(",")
@@ -24,15 +19,14 @@ def getDateTimeObjects():
     startDate="20150501"    #yyyymmdd
     endDate="20150515"      #yyyymmdd
     timeVals=[["2:15","3:15"],["3:15","6:15"],["6:20","8:00"],["8:00","9:00"],["9:00","10:00"],["10:00","11:00"],["11:00","12:00"],["12:00","13:10"],["13:10","14:20"],["14:20","15:20"],["15:20","16:20"],["16:20","17:45"],["17:45","19:15"],["19:30","21:00"],["21:00","22:30"]]
-    
+        
     dateTimeVals=[]
         
     curDate=datetime.datetime.strptime(startDate,"%Y%m%d")
     while curDate<=datetime.datetime.strptime(endDate,"%Y%m%d"):
         for timeVal in timeVals:
             dateTimeObj_start=datetime.datetime.strptime(curDate.strftime("%Y%m%d")+timeVal[0],"%Y%m%d%H:%M" )
-            dateTimeObj_end=datetime.datetime.strptime(str(curDate.year)+str(curDate.month)+str(curDate.day)+timeVal[1],"%Y%m%d%H:%M" )
-            dateTimeVals.append([dateTimeObj_start,dateTimeObj_end])
+            dateTimeObj_end=datetime.datetime.strptime(curDate.strftime("%Y%m%d")+timeVal[1],"%Y%m%d%H:%M" )
             dateTimeVals.append([dateTimeObj_start,dateTimeObj_end])
         curDate+=timedelta(days=1)
         
@@ -47,11 +41,19 @@ def getNameStrings():
             names.append(name)
     return names
 
+def getDateTimeToNameMapping():
+    names=getNameStrings()
+    timeData=getDateTimeObjects()
+    dateToName={}
+    for i in range(len(timeData)):
+        dateToName[(timeData[i][0]-timedelta(minutes=getGMTDiff())).strftime("%Y%m%dT%H%M00Z")+"_"+(timeData[i][1]-timedelta(minutes=getGMTDiff())).strftime("%Y%m%dT%H%M00Z")]=names[i]
+    return dateToName
+
 def createEvent(summary,dtstart,dtend,description=''):
     event=''
     event+="BEGIN:VEVENT\n"
     event+="DTSTART:"+dtstart+"\n"
-    event+="DTEND"+dtend+"\n"
+    event+="DTEND:"+dtend+"\n"
     event+="DTSTAMP:20150505T145509Z"+"\n"
     event+="UID:"+"\n"
     event+="CREATED:20140505T141602Z"+"\n"
